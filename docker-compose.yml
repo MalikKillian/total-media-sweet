@@ -1,19 +1,31 @@
 version: '2'
 services:
-    emby:
-        image: 'emby/embyserver'
-        container_name: 'embyserver'
+
+    organizr:
+        image: 'lsiocommunity/organizr'
+        container_name: 'organizr'
         volumes:
-            - embyConfig:/config            # This is mandatory
-            - tvMedia:/mnt/share1
-            - movieMedia:/mnt/share2
-#        devices:
-#            - /dev/dri/renderD128           # To mount a render node for VAAPI (not available in Windows)
+            - organizrConfig:/config
         ports:
-            - "8096:8096"                   # HTTP
-            - "8920:8920"                   # HTTPS
+            - "80:80"
         environment:
-            - UID=1000                      # The UID to run emby as
-            - GID=100                       # The GID to run emby as
-            - GIDLIST=100,50                # Comma-separated list of additional GIDs to run emby as
-            
+            - PUID=${PUID}
+            - PGID=${PGID}
+
+    qbittorrent:
+        context: ./linuxserver/docker-qbittorrent/
+        dockerfile: ./linuxserver/docker-qbittorrent/Dockerfile
+        container_name: 'qbittorrent'
+        volumes:
+            - qbitConfig:/config            # This is mandatory
+            - downloads:/downloads
+        ports:
+            - "8080:8080"                   # WebUI
+            - "6881:6881"
+            - "6881:6881/udp"
+        environment:
+            - PUID=${PUID}
+            - PGID=${PGID}
+            - UMASK_SET=022
+            - WEBUI_PORT=8080
+            - TZ=America/Chicago
